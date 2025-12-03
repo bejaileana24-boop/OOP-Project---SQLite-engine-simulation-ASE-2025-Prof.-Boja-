@@ -1,5 +1,4 @@
 #pragma once
-#include <string>
 
 enum CommandType {
 	UNKNOWN,
@@ -16,21 +15,21 @@ enum CommandType {
 
 class Command {
 private:
-	std::string command = "";
+	char* command = nullptr;
 	CommandType type = UNKNOWN;
 
-	CommandType determineCommandType(const std::string& cmd);
+	CommandType determineCommandType(const char* cmd);
 
 public:
 	Command();
 
-	Command(const std::string& cmd);
+	Command(const char* cmd);
 
 	Command(const Command& cmd);
 
 	CommandType getType() const;
 
-	std::string getCommandString() const;
+	char* getCommandString() const;
 
 	Command& operator=(const Command& cmd);
 

@@ -5,18 +5,18 @@
 
 class Database {
 private:
-	std::string name = "";
+	char* name = nullptr;
 	Table* tables = nullptr;
 	int tableCnt = 0;
 
 public:
 	Database();
 
-	Database(const std::string& name);
+	Database(const char* name);
 
 	Database(const Database& db);
 
-	std::string getName() const;
+	char* getName() const;
 
 	int getTableCount() const;
 
@@ -24,11 +24,11 @@ public:
 
 	Database& operator+=(const Table& table);
 
-	Database& operator-=(const std::string& tableName);
+	Database& operator-=(const char* tableName);
 
 	Table& operator[](const int tableIndex);
 
-	Table* findTable(const std::string& tableName) const;
+	Table* findTable(const char* tableName) const;
 
 	void processCommand(const Command& cmd);
 
