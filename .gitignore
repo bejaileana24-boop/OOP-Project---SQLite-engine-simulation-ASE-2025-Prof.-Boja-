@@ -1,0 +1,56 @@
+# --- Visual Studio specific ---
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+*.opendb
+*.VC.db
+
+# --- Build directories ---
+Debug/
+Release/
+x64/
+x86/
+build/
+out/
+bin/
+obj/
+
+# --- Compiled binaries ---
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.lib
+*.idb
+*.iobj
+*.ipdb
+
+# --- Intermediate build files ---
+*.obj
+*.pch
+*.pdb
+*.idb
+*.tlog
+*.log
+*.o
+*.mod
+
+# --- CMake ---
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# --- Backup / temporary files ---
+*.tmp
+*.bak
+*.old
+*~
+*.swp
+
+# --- System files ---
+.DS_Store
+Thumbs.db
+desktop.ini
