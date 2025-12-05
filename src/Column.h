@@ -31,7 +31,7 @@ public:
         }
     }
 
-    // Constructor W parameters
+    // Constructor w parameters
     Column(const char* n, ColumnType t, int s, const char* def = "")
         : name(nullptr), type(COL_UNKNOWN), size(0), defaultValue(nullptr), id(columnCount + 1)
     {
@@ -69,7 +69,7 @@ public:
         }
     }
 
-    // DESTRUCTORRR
+    // DESTRUCTOR
     ~Column()
     {
         delete[] name;
