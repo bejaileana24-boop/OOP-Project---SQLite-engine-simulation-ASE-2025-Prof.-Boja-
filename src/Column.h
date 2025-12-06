@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include <cstring>
+#include <string>
 
 enum ColumnType {
     COL_UNKNOWN = 0,
@@ -11,19 +11,18 @@ enum ColumnType {
 
 class Column {
 private:
-    char* name;          //name column
-    ColumnType type;     // type: integer / float / text
-    int size;          
-    char* defaultValue;  
+    std::string name;          // column name
+    ColumnType type;           // integer / float / text
+    int size;                  // size (for text / numeric limits)
+    std::string defaultValue;  // default value as string
 
-    static int columnCount;   
-    int stats[3];            
-    const int id;             
+    static int columnCount;    // how many Column objects exist
+    int stats[3];              // small statistics array
+    const int id;              // const field
 
 public:
-
-    // Constructor default
-    Column() : name(nullptr), type(COL_UNKNOWN), size(0), defaultValue(nullptr), id(columnCount + 1)
+    Column()
+        : name(""), type(COL_UNKNOWN), size(0), defaultValue(""), id(columnCount + 1)
     {
         columnCount++;
         for (int i = 0; i < 3; i++) {
@@ -31,101 +30,68 @@ public:
         }
     }
 
-    // Constructor w parameters
-    Column(const char* n, ColumnType t, int s, const char* def = "")
-        : name(nullptr), type(COL_UNKNOWN), size(0), defaultValue(nullptr), id(columnCount + 1)
+    Column(const std::string& n, ColumnType t, int s, const std::string& def = "")
+        : name(""), type(COL_UNKNOWN), size(0), defaultValue(""), id(columnCount + 1)
     {
         columnCount++;
         for (int i = 0; i < 3; i++) {
             stats[i] = 0;
         }
 
-        
         setName(n);
         setType(t);
         setSize(s);
         setDefaultValue(def);
     }
 
-    // Copy constructor 
-    Column(const Column& other) : name(nullptr), type(COL_UNKNOWN), size(0), defaultValue(nullptr), id(other.id)
+    Column(const Column& other)
+        : name(other.name),
+        type(other.type),
+        size(other.size),
+        defaultValue(other.defaultValue),
+        id(other.id)
     {
         columnCount++;
         for (int i = 0; i < 3; i++) {
             stats[i] = other.stats[i];
         }
-
-        if (other.name != nullptr) {
-            name = new char[std::strlen(other.name) + 1];
-            std::strcpy(name, other.name);
-        }
-
-        type = other.type;
-        size = other.size;
-
-        if (other.defaultValue != nullptr) {
-            defaultValue = new char[std::strlen(other.defaultValue) + 1];
-            std::strcpy(defaultValue, other.defaultValue);
-        }
     }
 
-    // DESTRUCTOR
     ~Column()
     {
-        delete[] name;
-        delete[] defaultValue;
+        // no manual delete needed (std::string handles memory)
         columnCount--;
     }
 
-    // Operator =
     Column& operator=(const Column& other)
     {
         if (this == &other) {
             return *this;
         }
 
-        //free whatt we had
-        delete[] name;
-        delete[] defaultValue;
-
-        name = nullptr;
-        defaultValue = nullptr;
-
-        if (other.name != nullptr) {
-            name = new char[std::strlen(other.name) + 1];
-            std::strcpy(name, other.name);
-        }
-
+        // id is const
+        name = other.name;
         type = other.type;
         size = other.size;
-
-        if (other.defaultValue != nullptr) {
-            defaultValue = new char[std::strlen(other.defaultValue) + 1];
-            std::strcpy(defaultValue, other.defaultValue);
-        }
+        defaultValue = other.defaultValue;
 
         for (int i = 0; i < 3; i++) {
             stats[i] = other.stats[i];
         }
 
-        // id is const
         return *this;
     }
 
-    // Getters / setters
-
-    const char* getName() const {
+    const std::string& getName() const {
         return name;
     }
 
-    void setName(const char* n) {
-        if (n == nullptr || std::strlen(n) == 0) {
-            // nu acceptam nume gol
+    void setName(const std::string& n) {
+        if (n.empty()) {
+            // do not accept empty names
             return;
         }
-        delete[] name;
-        name = new char[std::strlen(n) + 1];
-        std::strcpy(name, n);
+        name = n;
     }
 
     ColumnType getType() const {
@@ -150,17 +116,13 @@ public:
         size = s;
     }
 
-    const char* getDefaultValue() const {
+    const std::string& getDefaultValue() const {
         return defaultValue;
     }
 
-    void setDefaultValue(const char* def) {
-        if (def == nullptr) {
-            return;
-        }
-        delete[] defaultValue;
-        defaultValue = new char[std::strlen(def) + 1];
-        std::strcpy(defaultValue, def);
+    void setDefaultValue(const std::string& def) {
+        // we accept empty default
+        defaultValue = def;
     }
 
     int getId() const {
@@ -171,51 +133,33 @@ public:
         return columnCount;
     }
 
-    // operator ==  
     bool operator==(const Column& other) const
     {
-        bool sameName = false;
-        if (name == nullptr && other.name == nullptr) {
-            sameName = true;
-        }
-        else if (name != nullptr && other.name != nullptr) {
-            sameName = (std::strcmp(name, other.name) == 0);
-        }
-
-        bool sameDefault = false;
-        if (defaultValue == nullptr && other.defaultValue == nullptr) {
-            sameDefault = true;
-        }
-        else if (defaultValue != nullptr && other.defaultValue != nullptr) {
-            sameDefault = (std::strcmp(defaultValue, other.defaultValue) == 0);
-        }
-
-        return sameName && sameDefault && type == other.type && size == other.size;
+        return name == other.name &&
+            defaultValue == other.defaultValue &&
+            type == other.type &&
+            size == other.size;
     }
 
-    // cast operator 
     explicit operator int() const {
         return size;
     }
 
-    // operator ! 
     bool operator!() const {
-        return name == nullptr || type == COL_UNKNOWN;
+        return name.empty() || type == COL_UNKNOWN;
     }
 
-    // operator < 
-bool operator<(const Column& other) const {
+    bool operator<(const Column& other) const {
         return size < other.size;
     }
 
-    // operator <<
-friend std::ostream& operator<<(std::ostream& out, const Column& c)
+    friend std::ostream& operator<<(std::ostream& out, const Column& c)
     {
         out << "Column[ id=" << c.id
-            << ", name=" << (c.name ? c.name : "NULL")
+            << ", name=" << (c.name.empty() ? "NULL" : c.name)
             << ", type=" << c.cTypeAsText()
             << ", size=" << c.size
-            << ", default=" << (c.defaultValue ? c.defaultValue : "NULL")
+            << ", default=" << (c.defaultValue.empty() ? "NULL" : c.defaultValue)
             << " ]";
         return out;
     }
@@ -231,5 +175,5 @@ private:
     }
 };
 
-
+// static field initialization
 int Column::columnCount = 0;

@@ -1,12 +1,12 @@
 #pragma once
 #include <iostream>
-#include <cstring>
+#include <string>
 #include "Column.h"
 
 class Table {
 private:
-    char* name;
-    Column* columns;
+    std::string name;
+    Column* columns;     // dynamic array of columns
     int columnCount;
     int capacity;
 
@@ -15,23 +15,21 @@ private:
     const int id;
 
 public:
-    // constructor default
-    Table() : name(nullptr), columns(nullptr), columnCount(0), capacity(0), id(tableCount + 1)
+    Table()
+        : name(""), columns(nullptr), columnCount(0), capacity(0), id(tableCount + 1)
     {
         tableCount++;
         for (int i = 0; i < 3; i++) usage[i] = 0;
     }
 
-
-    Table(const char* n, int cap) : name(nullptr), columns(nullptr),
-        columnCount(0), capacity(cap), id(tableCount + 1)
+    Table(const char* n, int cap)
+        : name(""), columns(nullptr), columnCount(0), capacity(cap), id(tableCount + 1)
     {
         tableCount++;
         for (int i = 0; i < 3; i++) usage[i] = 0;
 
         if (n != nullptr && std::strlen(n) > 0) {
-            name = new char[std::strlen(n) + 1];
-            std::strcpy(name, n);
+            name = n;
         }
 
         if (capacity > 0) {
@@ -39,18 +37,16 @@ public:
         }
     }
 
-    // copy constructor
-    Table(const Table& other) : name(nullptr), columns(nullptr),
-        columnCount(other.columnCount), capacity(other.capacity), id(other.id)
+    Table(const Table& other)
+        : name(other.name),
+        columns(nullptr),
+        columnCount(other.columnCount),
+        capacity(other.capacity),
+        id(other.id)
     {
         tableCount++;
         for (int i = 0; i < 3; i++) usage[i] = other.usage[i];
 
-        if (other.name != nullptr) {
-            name = new char[std::strlen(other.name) + 1];
-            std::strcpy(name, other.name);
-        }
-
         if (capacity > 0) {
             columns = new Column[capacity];
             for (int i = 0; i < columnCount; i++) {
@@ -59,33 +55,23 @@ public:
         }
     }
 
-    // destructor
     ~Table()
     {
-        delete[] name;
         delete[] columns;
         tableCount--;
     }
 
-    // operator =
     Table& operator=(const Table& other)
     {
         if (this == &other) return *this;
 
-        delete[] name;
         delete[] columns;
-
-        name = nullptr;
         columns = nullptr;
         columnCount = other.columnCount;
         capacity = other.capacity;
+        name = other.name;
 
         for (int i = 0; i < 3; i++) usage[i] = other.usage[i];
-
-        if (other.name != nullptr) {
-            name = new char[std::strlen(other.name) + 1];
-            std::strcpy(name, other.name);
-        }
 
         if (capacity > 0) {
             columns = new Column[capacity];
@@ -94,65 +80,69 @@ public:
             }
         }
 
-        // id is const
         return *this;
     }
 
     const char* getName() const {
-        return name;
+        return name.c_str();
     }
 
     void setName(const char* n) {
         if (n == nullptr || std::strlen(n) == 0) return;
-        delete[] name;
-        name = new char[std::strlen(n) + 1];
-        std::strcpy(name, n);
+        name = n;
     }
 
     int getColumnCount() const {
         return columnCount;
     }
 
+    int getCapacity() const {
+        return capacity;
+    }
 
+    // add a column if there is space
     void addColumn(const Column& c) {
         if (columns == nullptr || columnCount >= capacity) return;
         columns[columnCount] = c;
         columnCount++;
     }
 
-    // access at column i
+    // access column i
     Column& operator[](int index) {
-
+        // simple bounds check
+        if (index < 0) index = 0;
+        if (index >= columnCount && columnCount > 0) index = columnCount - 1;
         return columns[index];
     }
 
-    // operator <<
+    const Column& operator[](int index) const {
+        if (index < 0) index = 0;
+        if (index >= columnCount && columnCount > 0) index = columnCount - 1;
+        return columns[index];
+    }
+
+
     friend std::ostream& operator<<(std::ostream& out, const Table& t)
     {
         out << "Table[ id=" << t.id
-            << ", name=" << (t.name ? t.name : "NULL")
+            << ", name=" << (t.name.empty() ? "NULL" : t.name.c_str())
             << ", columns=" << t.columnCount
             << " ]";
         return out;
     }
 
-    // operator ==
     bool operator==(const Table& other) const {
-        if (name == nullptr || other.name == nullptr) return false;
-        return std::strcmp(name, other.name) == 0 && columnCount == other.columnCount;
+        return name == other.name && columnCount == other.columnCount;
     }
-
 
     explicit operator int() const {
         return columnCount;
     }
 
-    // ++ 
     Table& operator++() {
         usage[0]++;
         return *this;
     }
-
 
     Table operator++(int) {
         Table temp(*this);
@@ -161,4 +151,5 @@ public:
     }
 };
 
+// static field initialization
 int Table::tableCount = 0;

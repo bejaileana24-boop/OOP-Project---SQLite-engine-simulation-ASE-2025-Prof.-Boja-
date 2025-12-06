@@ -2,11 +2,13 @@
 #include <string>
 #include "ParsedCommand.h"
 #include "CommandProcessor.h"
+#include "Database.h"
 
 using namespace std;
 
 int main() {
-    CommandProcessor processor;
+    Database db(20); // max 20 tabele in memorie
+    CommandProcessor processor(&db);
 
     cout << "SQLite Engine Simulation - Phase 1\n";
     cout << "Type EXIT to quit.\n\n";

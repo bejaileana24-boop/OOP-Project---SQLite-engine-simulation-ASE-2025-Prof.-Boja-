@@ -37,7 +37,7 @@ public:
 
     // Copy constructor
     Database(const Database& other)
-        : tables(nullptr), tableCount(other.tableCount), capacity(other.capacity), id(other.id)
+        : tables(nullptr), tableCount(0), capacity(other.capacity), id(other.id)
     {
         dbCount++;
 
@@ -45,9 +45,18 @@ public:
 
         if (capacity > 0) {
             tables = new Table[capacity];
-            for (int i = 0; i < tableCount; i++) {
-                tables[i] = other.tables[i];  // uses Table operator=
+
+            // numarul maxim de elemente pe care le copiem in siguranta
+            int limit = other.tableCount;
+            if (limit > capacity) {
+                limit = capacity;
             }
+
+            for (int i = 0; i < limit; i++) {
+                tables[i] = other.tables[i];
+            }
+
+            tableCount = limit;
         }
     }
 
@@ -58,7 +67,7 @@ public:
         dbCount--;
     }
 
-    //assignment operator
+    // assignment operator
     Database& operator=(const Database& other)
     {
         if (this == &other) return *this;
@@ -66,19 +75,34 @@ public:
         delete[] tables;
         tables = nullptr;
 
-        tableCount = other.tableCount;
         capacity = other.capacity;
 
         for (int i = 0; i < 3; i++) meta[i] = other.meta[i];
 
         if (capacity > 0) {
             tables = new Table[capacity];
-            for (int i = 0; i < tableCount; i++) {
+
+            int limit = other.tableCount;
+            if (limit > capacity) {
+                limit = capacity;
+            }
+
+            for (int i = 0; i < limit; i++) {
                 tables[i] = other.tables[i];
             }
+
+            tableCount = limit;
+        }
+        else {
+            tableCount = 0;
         }
 
         return *this;
+    }
+
+
+    int getTableCount() const {
+        return tableCount;
     }
 
     //add a table if there's space
@@ -90,7 +114,26 @@ public:
         return true;
     }
 
-    //find a table by name
+    // remove a table by name (used by DROP TABLE)
+    bool removeTable(const char* name)
+    {
+        if (tables == nullptr || name == nullptr) return false;
+
+        for (int i = 0; i < tableCount; i++) {
+            if (tables[i].getName() != nullptr &&
+                std::strcmp(tables[i].getName(), name) == 0)
+            {
+                // shift tables to the left
+                for (int j = i + 1; j < tableCount; j++) {
+                    tables[j - 1] = tables[j];
+                }
+                tableCount--;
+                return true;
+            }
+        }
+        return false;
+    }
+
     Table* findTable(const char* name)
     {
         if (!name) return nullptr;
@@ -104,23 +147,23 @@ public:
         return nullptr;
     }
 
-    //Access operator
-    Table& operator[](int index)
-    {
+    Table& operator[](int index) {
+        if (index < 0) index = 0;
+        if (index >= tableCount && tableCount > 0) index = tableCount - 1;
         return tables[index];
     }
 
-    int getTableCount() const {
-        return tableCount;
+    const Table& operator[](int index) const {
+        if (index < 0) index = 0;
+        if (index >= tableCount && tableCount > 0) index = tableCount - 1;
+        return tables[index];
     }
 
-    //operator ==
     bool operator==(const Database& other) const
     {
         return tableCount == other.tableCount;
     }
 
-    //cast operator 
     explicit operator int() const {
         return tableCount;
     }
@@ -138,7 +181,6 @@ public:
         return temp;
     }
 
-    //output operator
     friend std::ostream& operator<<(std::ostream& out, const Database& db)
     {
         out << "Database[id=" << db.id
