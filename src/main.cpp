@@ -8,14 +8,13 @@ using namespace std;
 int main() {
     CommandProcessor processor;
 
-    cout << "Simple SQL Parser (Part 1)\n";
+    cout << "SQLite Engine Simulation - Phase 1\n";
     cout << "Type EXIT to quit.\n\n";
 
     while (true) {
-        cout << ">> ";
+        cout << "sql> ";
 
         string line;
-
         getline(cin, line);
 
         if (!cin) {
@@ -28,13 +27,11 @@ int main() {
             break;
         }
 
-        ParsedCommand cmd = processor.parse(line);
+        if (line.empty()) {
+            continue;
+        }
 
-        cout << cmd << endl;
-
-        processor.printCommandInfo(cmd);
-
-        cout << "\n";
+        processor.processLine(line);
     }
 
     return 0;
