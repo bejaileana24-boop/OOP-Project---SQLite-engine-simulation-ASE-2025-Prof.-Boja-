@@ -1,38 +1,41 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string>
+#include "ParsedCommand.h"
+#include "CommandProcessor.h"
+
 using namespace std;
 
 int main() {
-    char buffer[256];
-    cout << "Introdu comanda: ";
-    cin.getline(buffer, 256);
+    CommandProcessor processor;
 
-    string vectorCuvinte[20];
-    int nrCuvinte = 0;
-    string currentWord = "";
+    cout << "Simple SQL Parser (Part 1)\n";
+    cout << "Type EXIT to quit.\n\n";
 
-    for (int i = 0; i < 256; i++) {
-        char c = buffer[i];
+    while (true) {
+        cout << ">> ";
 
-        if (c == '\0') {
-            if (!currentWord.empty()) {
-                vectorCuvinte[nrCuvinte++] = currentWord;
-            }
+        string line;
+
+        getline(cin, line);
+
+        if (!cin) {
+            cout << "\nInput stream closed.\n";
             break;
         }
 
-        if (c == ' ') {
-            if (!currentWord.empty()) {
-                vectorCuvinte[nrCuvinte++] = currentWord;
-                currentWord.clear();
-            }
+        if (line == "EXIT" || line == "exit") {
+            cout << "Exiting...\n";
+            break;
         }
-        else {
-            currentWord += c;
-        }
+
+        ParsedCommand cmd = processor.parse(line);
+
+        cout << cmd << endl;
+
+        processor.printCommandInfo(cmd);
+
+        cout << "\n";
     }
 
-    for (int i = 0; i < nrCuvinte; i++) {
-        cout << "[" << vectorCuvinte[i] << "]\n";
-    }
+    return 0;
 }
