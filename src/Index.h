@@ -2,20 +2,15 @@
 #include <iostream>
 #include <cstring>
 
-
-
-// This class stores basic information about a database index
-// It keeps the index name, table name, column name and simple metadata
-
 class Index {
 private:
-    char* indexName;   // index name
-    char* tableName;   // table name
-    char* columnName;  // column name
+    char* indexName;   
+    char* tableName;   
+    char* columnName;  
 
-    static int indexCount;  // static counter
+    static int indexCount;
     int meta[3];            // static vector
-    const int id;           // constant field
+    const int id;
 
 public:
     // Default constructor

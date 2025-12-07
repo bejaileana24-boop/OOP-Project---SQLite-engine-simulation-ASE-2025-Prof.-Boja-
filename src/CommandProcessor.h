@@ -16,8 +16,12 @@ private:
         int i = 0;
         int j = n - 1;
 
-        while (i <= j && (s[i] == ' ' || s[i] == '\t')) i++;
-        while (j >= i && (s[j] == ' ' || s[j] == '\t')) j--;
+        while (i <= j && (s[i] == ' ' || s[i] == '\t')) {
+            i++;
+        }
+        while (j >= i && (s[j] == ' ' || s[j] == '\t')) {
+            j--;
+        }
 
         if (i > j) return "";
         return s.substr(i, j - i + 1);
@@ -67,7 +71,6 @@ private:
         int pos = 0;
 
         while (pos < n) {
-            // find '('
             while (pos < n && colsText[pos] != '(') {
                 pos++;
             }

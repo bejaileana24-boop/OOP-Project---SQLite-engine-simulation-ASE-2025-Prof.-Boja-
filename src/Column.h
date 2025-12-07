@@ -18,7 +18,7 @@ private:
 
     static int columnCount;    // how many Column objects exist
     int stats[3];              // small statistics array
-    const int id;              // const field
+    const int id;              // const id field
 
 public:
     Column()
@@ -69,7 +69,6 @@ public:
             return *this;
         }
 
-        // id is const
         name = other.name;
         type = other.type;
         size = other.size;
@@ -121,7 +120,7 @@ public:
     }
 
     void setDefaultValue(const std::string& def) {
-        // we accept empty default
+        //  accept empty default
         defaultValue = def;
     }
 

@@ -19,8 +19,7 @@ public:
 
         case ERR_UNKNOWN_COMMAND:
             return "Unknown or unsupported command. "
-                "Supported commands: CREATE TABLE, DROP TABLE, DISPLAY TABLE, "
-                "CREATE INDEX, DROP INDEX, INSERT, SELECT, UPDATE, DELETE.";
+                "\nSupported commands: CREATE TABLE, DROP TABLE, DISPLAY TABLE, CREATE INDEX, DROP INDEX, INSERT, SELECT, UPDATE, DELETE.";
 
         case ERR_EMPTY_COMMAND:
             return "Empty command. Please type a SQL-like command or EXIT.";
