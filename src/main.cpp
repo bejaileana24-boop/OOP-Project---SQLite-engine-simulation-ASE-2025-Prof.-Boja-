@@ -7,7 +7,7 @@
 using namespace std;
 
 int main() {
-    Database db(20); // max 20 tabele in memorie
+    Database db(10);
     CommandProcessor processor(&db);
 
     cout << "SQLite Engine Simulation - Phase 1\n";
@@ -17,9 +17,7 @@ int main() {
         cout << "sql> ";
 
         string line;
-        getline(cin, line);
-
-        if (!cin) {
+        if (!std::getline(cin, line)) {
             cout << "\nInput stream closed.\n";
             break;
         }

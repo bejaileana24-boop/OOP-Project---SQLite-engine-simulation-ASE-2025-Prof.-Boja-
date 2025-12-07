@@ -36,6 +36,8 @@ private:
     std::string setColumn;
     std::string setValue;
 
+    // ----------------- helpers -----------------
+
     std::string toUpper(const std::string& s) const {
         std::string r = s;
         for (int i = 0; i < (int)r.size(); i++) {
@@ -85,19 +87,22 @@ private:
             if (second == "INDEX") return CMD_DROP_INDEX;
         }
 
-        if (first == "DISPLAY") return CMD_DISPLAY_TABLE;
-        if (first == "INSERT")  return CMD_INSERT;
-        if (first == "DELETE")  return CMD_DELETE;
-        if (first == "SELECT")  return CMD_SELECT;
-        if (first == "UPDATE")  return CMD_UPDATE;
+        if (first == "DISPLAY") {
+            if (second == "TABLE") return CMD_DISPLAY_TABLE;
+        }
+
+        if (first == "INSERT") return CMD_INSERT;
+        if (first == "SELECT") return CMD_SELECT;
+        if (first == "UPDATE") return CMD_UPDATE;
+        if (first == "DELETE") return CMD_DELETE;
 
         return CMD_UNKNOWN;
     }
 
-    std::string joinFrom(int fromIndex) const {
+    std::string joinFrom(int startIndex) const {
         std::string result;
-        for (int i = fromIndex; i < tokenCount; i++) {
-            if (!result.empty()) result += " ";
+        for (int i = startIndex; i < tokenCount; i++) {
+            if (i > startIndex) result += " ";
             result += tokens[i];
         }
         return result;
@@ -114,13 +119,14 @@ private:
         setValue.clear();
     }
 
+    // ----------------- per-command parsing -----------------
+
     void parseCreateTable() {
-        // CREATE TABLE tableName (...columns...)
+        // CREATE TABLE tableName (...) ...
         if (tokenCount >= 3) {
             tableName = tokens[2];
         }
         if (tokenCount >= 4) {
-            // everything after table name we'll consider "column definition"
             columnList = joinFrom(3);
         }
     }
@@ -140,6 +146,7 @@ private:
     }
 
     void parseCreateIndex() {
+        // CREATE INDEX idxName ON tableName (col)
         if (tokenCount >= 3) {
             indexName = tokens[2];
         }
@@ -159,6 +166,7 @@ private:
     }
 
     void parseInsert() {
+        // INSERT INTO table VALUES (...)
         if (tokenCount >= 3) {
             tableName = tokens[2];
         }
@@ -168,6 +176,7 @@ private:
     }
 
     void parseDelete() {
+        // DELETE FROM table WHERE col = val
         if (tokenCount >= 3) {
             tableName = tokens[2];
         }
@@ -178,6 +187,7 @@ private:
     }
 
     void parseSelect() {
+        // SELECT cols FROM table [WHERE col = val]
         if (tokenCount >= 2) {
             columnList = tokens[1];
         }
@@ -191,6 +201,7 @@ private:
     }
 
     void parseUpdate() {
+        // UPDATE table SET col = val WHERE col = val
         if (tokenCount >= 2) {
             tableName = tokens[1];
         }
@@ -208,28 +219,33 @@ private:
         clearExtracted();
 
         switch (type) {
-            case CMD_CREATE_TABLE: parseCreateTable();  break;
-            case CMD_DROP_TABLE:   parseDropTable();    break;
-            case CMD_DISPLAY_TABLE:parseDisplayTable(); break;
-            case CMD_CREATE_INDEX: parseCreateIndex();  break;
-            case CMD_DROP_INDEX:   parseDropIndex();    break;
-            case CMD_INSERT:       parseInsert();       break;
-            case CMD_DELETE:       parseDelete();       break;
-            case CMD_SELECT:       parseSelect();       break;
-            case CMD_UPDATE:       parseUpdate();       break;
-            default: break;
+        case CMD_CREATE_TABLE:  parseCreateTable();  break;
+        case CMD_DROP_TABLE:    parseDropTable();    break;
+        case CMD_DISPLAY_TABLE: parseDisplayTable(); break;
+        case CMD_CREATE_INDEX:  parseCreateIndex();  break;
+        case CMD_DROP_INDEX:    parseDropIndex();    break;
+        case CMD_INSERT:        parseInsert();       break;
+        case CMD_DELETE:        parseDelete();       break;
+        case CMD_SELECT:        parseSelect();       break;
+        case CMD_UPDATE:        parseUpdate();       break;
+        default:
+            break;
         }
     }
 
 public:
+    // --------------- constructors ---------------
+
     ParsedCommand()
-        : original(""), type(CMD_UNKNOWN), tokenCount(0) {
+        : original(""), type(CMD_UNKNOWN), tokenCount(0)
+    {
+        clearExtracted();
     }
 
-    ParsedCommand(const std::string& line)
-        : original(line), type(CMD_UNKNOWN), tokenCount(0)
+    ParsedCommand(const std::string& cmd)
+        : original(cmd), type(CMD_UNKNOWN), tokenCount(0)
     {
-        tokenize(line);
+        tokenize(original);
         type = detectType();
         analyze();
     }
@@ -251,6 +267,28 @@ public:
         whereValue = other.whereValue;
         setColumn = other.setColumn;
         setValue = other.setValue;
+    }
+
+    ~ParsedCommand() {}
+
+    // ----------------- getters -----------------
+
+    CommandType   getType()       const { return type; }
+    std::string   getCommand()    const { return original; }
+    std::string   getTableName()  const { return tableName; }
+    std::string   getIndexName()  const { return indexName; }
+    std::string   getColumnList() const { return columnList; }
+    std::string   getValuesList() const { return valuesList; }
+    std::string   getWhereColumn()const { return whereColumn; }
+    std::string   getWhereValue() const { return whereValue; }
+    std::string   getSetColumn()  const { return setColumn; }
+    std::string   getSetValue()   const { return setValue; }
+    int           getTokenCount() const { return tokenCount; }
+
+    // ----------------- operators -----------------
+
+    explicit operator int() const {
+        return tokenCount;
     }
 
     ParsedCommand& operator=(const ParsedCommand& other) {
@@ -275,22 +313,6 @@ public:
         return *this;
     }
 
-    ~ParsedCommand() {}
-
-    // getters
-    CommandType   getType()       const { return type; }
-    std::string   getCommand()    const { return original; }
-    std::string   getTableName()  const { return tableName; }
-    std::string   getIndexName()  const { return indexName; }
-    std::string   getColumnList() const { return columnList; }
-    std::string   getValuesList() const { return valuesList; }
-    std::string   getWhereColumn()const { return whereColumn; }
-    std::string   getWhereValue() const { return whereValue; }
-    std::string   getSetColumn()  const { return setColumn; }
-    std::string   getSetValue()   const { return setValue; }
-    int           getTokenCount() const { return tokenCount; }
-
-    // operators
     bool operator==(const ParsedCommand& other) const {
         return original == other.original && type == other.type;
     }
@@ -302,7 +324,6 @@ public:
     friend std::ostream& operator<<(std::ostream& out, const ParsedCommand& c) {
         out << "Command: \"" << c.original << "\"\n";
         out << "Type: " << c.type << "\n";
-
         if (!c.tableName.empty())
             out << "Table: " << c.tableName << "\n";
         if (!c.indexName.empty())
